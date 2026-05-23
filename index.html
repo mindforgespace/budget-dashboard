@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Budget Planner App — Standalone Web Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #0d0d0d;
+            --bg-card: #141414;
+            --border-color: #222222;
+            --text-main: #f5f5f5;
+            --text-muted: #8e8e93;
+            --accent-light: #0EA5E9;
+            --accent-dark: #C9A84C;
+            --accent-gradient: linear-gradient(135deg, #0EA5E9, #C9A84C);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND HIGHLIGHT ORBS --- */
+        .orb {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.15;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .orb-1 { top: -100px; left: -100px; background: var(--accent-light); }
+        .orb-2 { top: 600px; right: -100px; background: var(--accent-dark); }
+
+        /* --- WRAPPER & CONTAINER --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* --- HERO SECTION --- */
+        header {
+            padding: 80px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(201, 168, 76, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: #C9A84C;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 40px;
+            font-weight: 300;
+        }
+
+        /* --- LIVE PREVIEW TABS SWITCHER --- */
+        .preview-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 100px;
+        }
+
+        .tab-control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .window-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2a2a2a;
+        }
+        .window-dots span:nth-child(1) { background: #ff5f56; }
+        .window-dots span:nth-child(2) { background: #ffbd2e; }
+        .window-dots span:nth-child(3) { background: #27c93f; }
+
+        .edition-toggle {
+            display: flex;
+            background: #0d0d0d;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active[data-edition="light"] {
+            background: #ffffff;
+            color: #0d0d0d;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .toggle-btn.active[data-edition="midnight"] {
+            background: #C9A84C;
+            color: #0d0d0d;
+            box-shadow: 0 4px 12px rgba(199, 168, 76, 0.3);
+        }
+
+        /* Mock Web UI Frame */
+        .mock-app-viewport {
+            min-height: 380px;
+            border-radius: 12px;
+            transition: all 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .mock-app-viewport.light-theme {
+            background-color: #f8fafc;
+            color: #0f172a;
+            border: 1px solid #e2e8f0;
+        }
+
+        .mock-app-viewport.midnight-theme {
+            background-color: #111111;
+            color: #f5f5f5;
+            border: 1px solid #222222;
+        }
+
+        .mock-ui-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .light-theme .mock-ui-title { color: #0EA5E9; }
+        .midnight-theme .mock-ui-title { color: #C9A84C; }
+
+        .mock-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 24px;
+        }
+
+        .mock-card {
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .light-theme .mock-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .midnight-theme .mock-card { background: #181818; border: 1px solid #282828; }
+
+        /* --- FEATURES SECTIONS --- */
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 48px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-bottom: 100px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: #333333;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        /* --- UNIQUE ACCORDION INTERACTIVITY --- */
+        .interactive-showcase {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 100px;
+        }
+
+        .showcase-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media(max-width: 768px) {
+            .showcase-layout { grid-template-columns: 1fr; }
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 0;
+            cursor: pointer;
+        }
+
+        .accordion-item:last-child { border-bottom: none; }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 8px;
+            font-weight: 300;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 100px;
+        }
+
+        .accordion-item.active .accordion-header {
+            color: #C9A84C;
+        }
+
+        .display-panel {
+            background: #0d0d0d;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pane-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #8e8e93;
+        }
+
+        /* --- CALL TO ACTION BLOCK --- */
+        .cta-block {
+            text-align: center;
+            background: radial-gradient(circle at top, #141414 0%, #0d0d0d 100%);
+            border: 1px solid var(--border-color);
+            padding: 60px 40px;
+            border-radius: 24px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: #ffffff;
+            color: #000000;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.05rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 24px;
+        }
+
+        .cta-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #444444;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="container">
+        
+        <header>
+            <div class="badge">✦ Standalone Web Architecture</div>
+            <h1>The Ultimate <span>Budget Planner</span> App</h1>
+            <p class="hero-subtitle">No Excel templates. No slow PDFs. No monthly software fees. Simply double-click to launch a fully responsive luxury financial workspace directly in your web browser.</p>
+        </header>
+
+        <div class="preview-wrapper">
+            <div class="tab-control-bar">
+                <div class="window-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="edition-toggle">
+                    <button class="toggle-btn" data-edition="light" onclick="switchTheme('light')">Light Edition</button>
+                    <button class="toggle-btn active" data-edition="midnight" onclick="switchTheme('midnight')">Midnight Edition</button>
+                </div>
+            </div>
+
+            <div id="appViewport" class="mock-app-viewport midnight-theme">
+                <div class="mock-ui-title" id="viewportTitle">Ultimate Budget Planner — Midnight Edition</div>
+                <p style="font-size: 0.95rem; opacity: 0.8;" id="viewportSubtitle">Bespoke luxury gold tones styled explicitly for streamlined late-night financial tracking.</p>
+                
+                <div class="mock-dashboard-grid">
+                    <div class="mock-card">📈 Chart.js Grid Ready</div>
+                    <div class="mock-card">🔒 Local Storage Lock</div>
+                    <div class="mock-card">☁️ Google Cloud Sync</div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Engineered For Performance</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Dynamic Charting Engine</h3>
+                <p>Powered by native Chart.js integrations. Watch your spending allocations, investment distribution grids, and luxury dynamic income metrics re-render automatically in real time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Absolute Data Privacy</h3>
+                <p>Your financial metrics belong only to you. Built-in local browser persistence frameworks secure data instantly without routing information to external structural servers.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>True Mobile Responsiveness</h3>
+                <p>Designed with adaptive layout viewports. Cards dynamically collapse, tables resize seamlessly, and interactive controls re-stack flawlessly for mobile environments.</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Advanced Framework Control</h2>
+        <div class="interactive-showcase">
+            <div class="showcase-layout">
+                <div class="accordion-list">
+                    <div class="accordion-item active" onclick="showPane(0, 'google')">
+                        <div class="accordion-header">Native Cloud Integration</div>
+                        <div class="accordion-content">Directly hook into the official Google Drive API to manage distributed multi-device backups seamlessly.</div>
+                    </div>
+                    <div class="accordion-item" onclick="showPane(1, 'storage')">
+                        <div class="accordion-header">Automated Recovery Backups</div>
+                        <div class="accordion-content">Set up system-monitored automated check cycles to capture security backups automatically.</div>
+                    </div>
+                    <div class="accordion-item" onclick="showPane(2, 'ux')">
+                        <div class="accordion-header">Optimized Typography & Interface</div>
+                        <div class="accordion-content">Finely tuned code featuring clean Poppins typefaces combined with hyper-legible JetBrains Mono details.</div>
+                    </div>
+                </div>
+                <div class="display-panel">
+                    <div id="paneCodeDisplay" class="pane-text">
+                        // GOOGLE DRIVE BACKUP SYNC REGISTRY<br>
+                        function autoSaveToGDrive() {<br>
+                        &nbsp;&nbsp;if (!gdriveConnected || !gdriveAccessToken) return;<br>
+                        &nbsp;&nbsp;console.log('Auto-saving data to Google Drive secure layer...');<br>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-block">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 12px;">Elevate Your Financial Tracking Routine</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto; font-weight: 300;">Purchase once. Own the standalone code completely. Instantly receive your master HTML files and dedicated mobile setup paths over email.</p>
+            <a href="#" class="cta-btn">Acquire Immediate Access On Etsy</a>
+        </div>
+
+        <footer>
+            by @mindfor • build in silence.
+        </footer>
+
+    </div>
+
+    <script>
+        // Theme Switcher Logic
+        function switchTheme(theme) {
+            const viewport = document.getElementById('appViewport');
+            const title = document.getElementById('viewportTitle');
+            const subtitle = document.getElementById('viewportSubtitle');
+            const buttons = document.querySelectorAll('.toggle-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-edition="${theme}"]`).classList.add('active');
+
+            if (theme === 'light') {
+                viewport.className = 'mock-app-viewport light-theme';
+                title.textContent = 'Ultimate Budget Planner — Light Edition';
+                subtitle.textContent = 'Crisp, sky-blue canvas styling engineered specifically for high-contrast daylight monitoring.';
+            } else {
+                viewport.className = 'mock-app-viewport midnight-theme';
+                title.textContent = 'Ultimate Budget Planner — Midnight Edition';
+                subtitle.textContent = 'Bespoke luxury gold tones styled explicitly for streamlined late-night financial tracking.';
+            }
+        }
+
+        // Accordion Interactive Panes Code Simulation
+        const paneData = {
+            google: `// GOOGLE DRIVE BACKUP SYNC REGISTRY\nfunction autoSaveToGDrive() {\n  if (!gdriveConnected || !gdriveAccessToken) return;\n  console.log('Auto-saving data to Google Drive secure layer...');\n}`,
+            storage: `// BACKUP ENGINE LOCAL TIME AUTOMATION\nif (autoDownloadEnabled) {\n  checkAutoDownload(); // Verify recovery status\n  setInterval(checkAutoDownload, 24 * 60 * 60 * 1000);\n}`,
+            ux: `/* APP UI UX DESIGN PALETTE SPEC */\n:root {\n  --font-display: 'Poppins', sans-serif;\n  --font-data: 'JetBrains Mono', monospace;\n  --accent: #C9A84C; /* Luxury Gold Tone */\n}`
+        };
+
+        function showPane(index, key) {
+            const items = document.querySelectorAll('.accordion-item');
+            items.forEach(item => item.classList.remove('active'));
+            items[index].classList.add('active');
+            
+            document.getElementById('paneCodeDisplay').innerHTML = paneData[key].replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+        }
+    </script>
+</body>
+</html>
