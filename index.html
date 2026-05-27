@@ -189,31 +189,19 @@
             border: 1px solid #222222;
         }
 
-        .mock-ui-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .light-theme .mock-ui-title { color: #0EA5E9; }
-        .midnight-theme .mock-ui-title { color: #C9A84C; }
-
-        .mock-dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
+        .app-iframe {
             width: 100%;
-            max-width: 600px;
-            margin-top: 24px;
+            height: 700px;
+            border: none;
+            border-radius: 12px;
+            display: block;
         }
 
-        .mock-card {
-            padding: 16px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-family: 'JetBrains Mono', monospace;
+        @media (max-width: 768px) {
+            .app-iframe {
+                height: 500px;
+            }
         }
-        .light-theme .mock-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .midnight-theme .mock-card { background: #181818; border: 1px solid #282828; }
 
         /* --- FEATURES SECTIONS --- */
         .section-title {
@@ -401,15 +389,14 @@
                 </div>
             </div>
 
-            <div id="appViewport" class="mock-app-viewport midnight-theme">
-                <div class="mock-ui-title" id="viewportTitle">Ultimate Budget Planner — Midnight Edition</div>
-                <p style="font-size: 0.95rem; opacity: 0.8;" id="viewportSubtitle">Bespoke luxury gold tones styled explicitly for streamlined late-night financial tracking.</p>
-                
-                <div class="mock-dashboard-grid">
-                    <div class="mock-card">📈 Chart.js Grid Ready</div>
-                    <div class="mock-card">🔒 Local Storage Lock</div>
-                    <div class="mock-card">☁️ Google Cloud Sync</div>
-                </div>
+            <div id="appViewport">
+                <iframe
+                    id="appIframe"
+                    class="app-iframe"
+                    src="Budget-Planner-Dark.html"
+                    title="MindForge Ultimate Budget Planner"
+                    allowfullscreen>
+                </iframe>
             </div>
         </div>
 
@@ -468,30 +455,24 @@
         </div>
 
         <footer>
-            by @mindfor • build in silence.
+            by @mindforgespace • build in silence. 🔇
         </footer>
 
     </div>
 
     <script>
-        // Theme Switcher Logic
+        // Theme Switcher — loads real app files
         function switchTheme(theme) {
-            const viewport = document.getElementById('appViewport');
-            const title = document.getElementById('viewportTitle');
-            const subtitle = document.getElementById('viewportSubtitle');
+            const iframe = document.getElementById('appIframe');
             const buttons = document.querySelectorAll('.toggle-btn');
 
             buttons.forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[data-edition="${theme}"]`).classList.add('active');
 
             if (theme === 'light') {
-                viewport.className = 'mock-app-viewport light-theme';
-                title.textContent = 'Ultimate Budget Planner — Light Edition';
-                subtitle.textContent = 'Crisp, sky-blue canvas styling engineered specifically for high-contrast daylight monitoring.';
+                iframe.src = 'Budget-Planner-Light.html';
             } else {
-                viewport.className = 'mock-app-viewport midnight-theme';
-                title.textContent = 'Ultimate Budget Planner — Midnight Edition';
-                subtitle.textContent = 'Bespoke luxury gold tones styled explicitly for streamlined late-night financial tracking.';
+                iframe.src = 'Budget-Planner-Dark.html';
             }
         }
 
