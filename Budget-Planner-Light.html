@@ -868,20 +868,7 @@
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">📅 View Period:</span>
                     <select id="month-filter" onchange="filterByMonth()" style="padding: 8px 15px; font-size: 0.95rem; border: 2px solid var(--border); border-radius: 8px; background: #FFFFFF; color: var(--text-primary); cursor: pointer; min-width: 200px; border: 2px solid var(--border);">
-                        <option value="all">All Time (Year Total)</option>
-                        <option value="2025-00">January 2025</option>
-                        <option value="2025-01">February 2025</option>
-                        <option value="2025-02">March 2025</option>
-                        <option value="2025-03">April 2025</option>
-                        <option value="2025-04">May 2025</option>
-                        <option value="2025-05">June 2025</option>
-                        <option value="2025-06">July 2025</option>
-                        <option value="2025-07">August 2025</option>
-                        <option value="2025-08">September 2025</option>
-                        <option value="2025-09">October 2025</option>
-                        <option value="2025-10">November 2025</option>
-                        <option value="2025-11">December 2025</option>
-                    </select>
+                        <option value="all">All Time (Year Total)</option></select>
                 </div>
                 <div style="font-size: 0.85rem; color: var(--text-muted);">
                     <span id="filter-info">Showing totals across all months</span>
@@ -4155,6 +4142,56 @@ TO GET STARTED:
         setInterval(checkAutoDownload, 24 * 60 * 60 * 1000);
     </script>
         <div style="text-align:center;padding:14px 20px 10px;font-size:0.72rem;color:var(--text-muted);letter-spacing:0.06em;">by <span style="font-weight:700;background:linear-gradient(135deg,#0EA5E9,#F0D060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">@mindforgespace</span></div>
+
+
+    <script>
+        // ── DYNAMIC YEAR GENERATOR ─────────────────────────────
+        // Automatically generates months for every year from 2020
+        // to 5 years in the future. Works in 2026, 2027, 2028... forever.
+        // Zero manual updates needed. Ever.
+        (function() {
+            const select = document.getElementById('month-filter');
+            if (!select) return;
+
+            const months = [
+                'January','February','March','April',
+                'May','June','July','August',
+                'September','October','November','December'
+            ];
+
+            const now        = new Date();
+            const thisYear   = now.getFullYear();
+            const thisMonth  = now.getMonth();
+            const startYear  = 2020;          // earliest year available
+            const endYear    = thisYear + 5;  // always 5 years ahead
+
+            for (let year = startYear; year <= endYear; year++) {
+                // Year group label
+                const groupLabel = document.createElement('option');
+                groupLabel.disabled = true;
+                groupLabel.textContent = '── ' + year + ' ──';
+                select.appendChild(groupLabel);
+
+                // All 12 months for this year
+                for (let m = 0; m < 12; m++) {
+                    const option      = document.createElement('option');
+                    option.value      = year + '-' + String(m).padStart(2, '0');
+                    option.textContent = months[m] + ' ' + year;
+
+                    // Auto-select current month
+                    if (year === thisYear && m === thisMonth) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                }
+            }
+
+            // Trigger filter with auto-selected month
+            if (typeof filterByMonth === 'function') {
+                filterByMonth();
+            }
+        })();
+    </script>
 
 </body>
 </html>
